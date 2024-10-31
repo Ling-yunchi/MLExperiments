@@ -103,24 +103,24 @@ categories = [
     "rec.sport.hockey",
     "sci.med",
     "sci.space",
-    "talk.politics.guns",
+    "talk.politics.mideast",
 ]
 # 加载20 Newsgroups数据集
-newsgroups = fetch_20newsgroups(data_home="data", subset="train", categories=categories)
+train_newsgroups = fetch_20newsgroups(
+    data_home="data", subset="train", categories=categories
+)
+test_newsgroups = fetch_20newsgroups(
+    data_home="data", subset="test", categories=categories
+)
 
 # 使用TF-IDF向量化文本数据
 tokenizer = Tokenizer(10000)
 tokenizer.load_stop_words("stop_words.txt")
-tokenizer.init_vocabulary(newsgroups.data)
+tokenizer.init_vocabulary(train_newsgroups.data)
 tokenizer.save("tokenizer.txt")
-X = tokenizer.vectorize(newsgroups.data)
+X_train, y_train = tokenizer.vectorize(train_newsgroups.data), train_newsgroups.target
+X_test, y_test = tokenizer.vectorize(test_newsgroups.data), test_newsgroups.target
 
-# 标签
-y = newsgroups.target
-
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
-)
 
 # 使用朴素贝叶斯分类器
 model = NaiveBayesClassifier()
@@ -131,4 +131,4 @@ y_pred = model.predict(X_test)
 # 计算准确率和其他评估指标
 accuracy = accuracy_score(y_test, y_pred)
 print(f"Accuracy: {accuracy:.4f}")
-print(classification_report(y_test, y_pred, target_names=newsgroups.target_names))
+print(classification_report(y_test, y_pred, target_names=train_newsgroups.target_names))
