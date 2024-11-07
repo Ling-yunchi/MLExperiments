@@ -1,3 +1,5 @@
+import os.path
+
 import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader, random_split
@@ -21,6 +23,7 @@ image_size = 224
 learning_rate_header = 1e-3  # 头部的学习率
 epochs = 30
 test_interval = 5
+save_epoch = 3
 
 # 数据预处理
 train_transform = Compose(
@@ -119,8 +122,10 @@ for epoch in range(1, epochs + 1):
     print(f"Epoch {epoch}/{epochs}, Validation Accuracy: {accuracy}")
 
     torch.save(model.state_dict(), f"{work_dir}/epoch_{epoch}.pth")
+    if os.path.exists(f"{work_dir}/epoch_{epoch-save_epoch}.pth"):
+        os.remove(f"{work_dir}/epoch_{epoch-save_epoch}.pth")
 
-    if (epoch) % test_interval == 0:
+    if epoch % test_interval == 0:
         correct = 0
         total = 0
         with torch.no_grad():
