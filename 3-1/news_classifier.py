@@ -1,10 +1,10 @@
 import re
+import time
 from collections import defaultdict
 
 import numpy as np
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.metrics import accuracy_score, classification_report
-from sklearn.model_selection import train_test_split
 
 
 class Tokenizer:
@@ -12,8 +12,8 @@ class Tokenizer:
         self.vocab_size = vocabulary_size
         self.word_to_idx = {}
         self.idx_to_word = {}
-        self.word_frequencies = {}
-        self.stop_words = set()
+        self.word_frequencies = {}  # words and their frequencies
+        self.stop_words = set()  # words not added to vocabulary
 
     def load_stop_words(self, path):
         self.stop_words = set()
@@ -24,11 +24,11 @@ class Tokenizer:
     def init_vocabulary(self, documents):
         vocabulary = {}
         for doc in documents:
-            words = re.findall(r"\b[a-zA-Z]+\b", doc.lower())
+            words = re.findall(r"\b[a-zA-Z]+\b", doc.lower())  # get all words
             for word in words:
-                if word in self.stop_words:  # 过滤停用词
+                if word in self.stop_words:  # filter stop words
                     continue
-                if word not in vocabulary:
+                if word not in vocabulary:  # add word to vocabulary
                     vocabulary[word] = 1
                 else:
                     vocabulary[word] += 1
@@ -113,14 +113,50 @@ test_newsgroups = fetch_20newsgroups(
     data_home="data", subset="test", categories=categories
 )
 
+
+def count_articles_by_category(newsgroups_data):
+    category_counts = defaultdict(int)
+    for target in newsgroups_data.target:
+        category_name = newsgroups_data.target_names[target]
+        category_counts[category_name] += 1
+    return category_counts
+
+
+# 输出训练集和测试集中各类文章数量
+train_counts = count_articles_by_category(train_newsgroups)
+test_counts = count_articles_by_category(test_newsgroups)
+
+print("Training set article counts per category:")
+for category, count in train_counts.items():
+    print(f"{category}: {count}")
+
+print("\nTest set article counts per category:")
+for category, count in test_counts.items():
+    print(f"{category}: {count}")
+
+print("")
+
 # 使用TF-IDF向量化文本数据
-tokenizer = Tokenizer(10000)
+start_time = time.time()
+vocab_size = 20000
+tokenizer = Tokenizer(vocab_size)
 tokenizer.load_stop_words("stop_words.txt")
 tokenizer.init_vocabulary(train_newsgroups.data)
 tokenizer.save("tokenizer.txt")
 X_train, y_train = tokenizer.vectorize(train_newsgroups.data), train_newsgroups.target
 X_test, y_test = tokenizer.vectorize(test_newsgroups.data), test_newsgroups.target
 
+# vocab_size, accuracy, time
+# 1000 0.8593 0.6098
+# 5000 0.9339 1.0191
+# 10000 0.9496 1.5702
+# 20000 0.9521 2.4185
+# 30000 0.9500 3.7728
+
+np.set_printoptions(threshold=25, edgeitems=15, linewidth=200)
+for i in range(20, 30):
+    print(f"data: {X_train[i]}, label: {y_train[i]}")
+print("")
 
 # 使用朴素贝叶斯分类器
 model = NaiveBayesClassifier()
@@ -130,5 +166,8 @@ y_pred = model.predict(X_test)
 
 # 计算准确率和其他评估指标
 accuracy = accuracy_score(y_test, y_pred)
+print(
+    f"Vocab size: {vocab_size}, Execution time: {time.time() - start_time:.4f} seconds"
+)
 print(f"Accuracy: {accuracy:.4f}")
 print(classification_report(y_test, y_pred, target_names=train_newsgroups.target_names))
