@@ -19,10 +19,12 @@ def calc_label_count(dataset):
     return class_counts
 
 
-table = PrettyTable(["Name", "Train", "Test"])
-train = calc_label_count(train_dataset)
-test = calc_label_count(test_dataset)
-for k in train_dataset.classes:
-    table.add_row([k, train.get(k, 0), test.get(k, 0)])
+# table = PrettyTable(["Name", "Train", "Test"])
+# train = calc_label_count(train_dataset)
+# test = calc_label_count(test_dataset)
+# for k in train_dataset.classes:
+#     table.add_row([k, train.get(k, 0), test.get(k, 0)])
+#
+# print(table)
 
-print(table)
+print(str.join(",", train_dataset.classes))

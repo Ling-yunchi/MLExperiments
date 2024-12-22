@@ -2,7 +2,7 @@ import os.path
 
 import torch
 from torch import nn, optim
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from torchvision import datasets
 from torchvision.transforms import (
@@ -15,7 +15,7 @@ from torchvision.transforms import (
 )
 from tqdm import tqdm
 
-from model import VitPetClassifier, ResnetPetClassifier
+from model import ResNet
 
 # 定义数据集路径和参数
 batch_size = 32
@@ -53,7 +53,7 @@ print("Test dataset size:", len(test_dataset))
 train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
-model = ResnetPetClassifier(pretrained=True)
+model = ResNet(num_classes=10)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
